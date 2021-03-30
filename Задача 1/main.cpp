@@ -50,22 +50,28 @@ void pie(double xm, const int N, double &K)
 double pie_par()
 {
     const int N = 100000;
-    int n = N / 4;
+    int num = std::thread::hardware_concurrency();
+    int n = N / num;
     double k = 0;
 
-    thread thr1(pie, 0.0, n, std::ref(k));
-	thread thr2(pie, 0.25, n, std::ref(k));
-    thread thr3(pie, 0.5, n, std::ref(k));
-    thread thr4(pie, 0.75, n, std::ref(k));
+    std::vector < std::thread > th(num);
 
-    thr1.join();
-	thr2.join();
-    thr3.join();
-	thr4.join();
+    for (std::size_t i = 0; i < num; ++i)
+	{
+		th[i] = std::thread(
+			pie, static_cast<double>(i) / static_cast<double>(num),
+            static_cast<double>(i + 1) / static_cast<double>(num),
+            n, std::ref(k));
 
-    return 4 * k / N;
+	}
+
+	for(int i = 0; i < num; ++i)
+    {
+        th[i].join();
+    }
+
+    return 4 * static_cast<double>(k) / static_cast<double>(N);
 }
-
 
 int main()
 {
